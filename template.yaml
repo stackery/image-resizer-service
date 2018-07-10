@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: 2010-09-09
+AWSTemplateFormatVersion: 2010-09-09T00:00:00.000Z
 Transform: AWS::Serverless-2016-10-31
 Description: Serverless REST API for image resizing
 Parameters:
@@ -6,47 +6,26 @@ Parameters:
     Type: String
     Description: S3 Bucket where original images are placed
 Resources:
-  ResizeFunction:
+  functionA83DF86C:
     Type: AWS::Serverless::Function
     Properties:
-      Description: Image Resizing Lambda
+      FunctionName: !Sub ${AWS::StackName}-functionA83DF86C
+      Description: !Sub
+        - Stackery Stack ${StackeryStackTagName} Environment ${StackeryEnvironmentTagName} Function ${ResourceName}
+        - ResourceName: functionA83DF86C
+      CodeUri: src/functionA83DF86C
       Handler: index.handler
-      Runtime: nodejs6.10
-      Timeout: 60
-      CodeUri: dist/bundle.zip
-      MemorySize: 1536
-      Policies:
-        - S3ReadPolicy:
-            BucketName:
-              Ref: imageBucket
+      Runtime: nodejs8.10
+      MemorySize: 3006
       Events:
-        AuthorizerApiRoot:
+        objectStore696A93B3:
+          Type: S3
           Properties:
-            Method: GET
-            Path: '/{proxy+}'
-            RestApiId: !Ref Api
-          Type: Api
-      Environment:
-        Variables:
-          IMAGE_BUCKET:
-            Ref: imageBucket
-  Api:
-    Type: AWS::Serverless::Api
+            Bucket: !Ref ${sourceId}
+            Events:
+              - s3:ObjectCreated:*
+              - s3:ObjectRemoved:*
+  objectStore696A93B3:
+    Type: AWS::S3::Bucket
     Properties:
-      Name: ImageResizerAPI
-      StageName: production
-      DefinitionBody:
-        swagger: "2.0"
-        schemes:
-        - "https"
-        paths:
-          '/{proxy+}':
-            get:
-              responses: {}
-              x-amazon-apigateway-integration:
-                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ResizeFunction.Arn}/invocations
-                passthroughBehavior: "when_no_match"
-                httpMethod: "POST"
-                type: aws_proxy
-        x-amazon-apigateway-binary-media-types:
-        - "*/*"
+      BucketName: !Sub ${AWS::StackName}-objectStore696A93B3
